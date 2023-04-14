@@ -1,0 +1,44 @@
+---
+apiVersion: v1
+baseDomain: coreostrain.me
+controlPlane: 
+  hyperthreading: Enabled
+  name: controller
+  platform:
+    aws:
+      rootVolume:
+        size: 120
+      type: m5.xlarge 
+  replicas: 1
+compute:
+- hyperthreading: Enabled
+  name: worker
+  platform:
+    aws:
+      rootVolume:
+        size: 120
+      type: m5.xlarge
+  replicas: 0
+metadata:
+  creationTimestamp: null
+  name: {{ sno_item }}
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: 10.0.0.0/16
+  networkType: OpenShiftSDN
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  aws:
+    region: us-east-1
+    subnets:
+    # add subnets here
+    - {{ public_subnet }}
+    - {{ private_subnet }}
+publish: External
+pullSecret: {{ pull_secret }}
+sshKey: |
+  {{ ssh_key }}

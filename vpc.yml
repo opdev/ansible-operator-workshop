@@ -1,0 +1,22 @@
+---
+- name: Set up shared VPC
+  hosts: localhost
+  roles:
+    - role: vpc
+      vars:
+        workshop_name: "{{ workshop_name }}"
+        destroy: "{{ teardown_vpc }}"
+        kube_token: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_API_KEY') }}"
+        kube_host: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_HOST') }}"
+        kube_namespace: "{{ workshops_namespace }}"
+  post_tasks:
+    - name: Print outputs
+      ansible.builtin.debug:
+        var: terraform_outputs.outputs['sno-lab-vpc-subnet-private'].value[0]
+      when: not teardown_vpc
+    - name: Register artifacts
+      ansible.builtin.set_stats:
+        data:
+          public_subnet: "{{ terraform_outputs.outputs['sno-lab-vpc-subnet-public'].value[0] }}"
+          private_subnet: "{{ terraform_outputs.outputs['sno-lab-vpc-subnet-private'].value[0] }}"
+      when: not teardown_vpc

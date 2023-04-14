@@ -1,0 +1,4 @@
+---
+destroy: false
+workshop_name: default
+kube_namespace: workshops

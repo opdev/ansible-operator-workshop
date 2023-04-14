@@ -1,0 +1,47 @@
+---
+- name: Ensure installer directories
+  ansible.builtin.file:
+    path: /tmp/installer/{{ sno_item }}
+    state: directory
+    mode: '0755'
+  loop: "{{ cluster_names }}"
+  loop_control:
+    loop_var: "sno_item"
+
+- name: Check for existing install output
+  amazon.aws.s3_object:
+    bucket: "{{ bucket_name }}"
+    region: "{{ region }}"
+    object: "/{{ sno_item }}/metadata.json"
+    dest: /tmp/installer/{{ sno_item }}/metadata.json
+    mode: get
+  ignore_errors: true
+  register: install_files
+  loop: "{{ cluster_names }}"
+  loop_control:
+    loop_var: "sno_item"
+
+- name: Fetch the installer
+  ansible.builtin.include_tasks:
+    file: installer-{{ ansible_facts['system'] }}.yml
+  vars:
+    destination: /tmp/installer
+  when: not install_files.failed
+
+- name: Run destroy
+  ansible.builtin.command:
+    cmd: /tmp/installer/openshift-install destroy cluster --dir=/tmp/installer/{{ sno_item }}
+    removes: /tmp/installer/{{ sno_item }}/metadata.json
+  when: not install_files.failed
+  loop: "{{ cluster_names }}"
+  loop_control:
+    loop_var: "sno_item"
+
+- name: Remove from S3 bucket
+  amazon.aws.s3_object:
+    bucket: "{{ bucket_name }}"
+    region: "{{ region }}"
+    object: "/{{ item[0] }}/{{ item[1] }}"
+    mode: delobj
+  when: not install_files.failed
+  loop: "{{ cluster_names | product(['metadata.json', 'auth/kubeconfig', 'auth/kubeadmin-password']) | list }}"

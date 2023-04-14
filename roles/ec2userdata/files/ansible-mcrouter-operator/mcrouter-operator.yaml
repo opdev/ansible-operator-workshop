@@ -1,0 +1,181 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: mcrouter-operator
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/exec
+      - pods/log
+      - services
+      - endpoints
+      - persistentvolumeclaims
+      - events
+      - configmaps
+      - secrets
+    verbs:
+      - '*'
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - daemonsets
+      - replicasets
+      - statefulsets
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - servicemonitors
+      - servicemonitor/finalizers
+    verbs:
+      - get
+      - create
+      - update
+  - apiGroups:
+      - apps
+    resourceNames:
+      - mcrouter-operator
+    resources:
+      - deployments
+      - deployments/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - mcrouter.example.com
+    resources:
+      - mcrouters
+      - mcrouters/status
+      - mcrouters/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mcrouter-operator
+subjects:
+  - kind: ServiceAccount
+    name: mcrouter-operator
+roleRef:
+  kind: Role
+  name: mcrouter-operator
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mcrouter-operator
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcrouter-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: mcrouter-operator
+  template:
+    metadata:
+      labels:
+        name: mcrouter-operator
+    spec:
+      serviceAccountName: mcrouter-operator
+      containers:
+        - name: ansible
+          command:
+            - /usr/local/bin/ao-logs
+            - /tmp/ansible-operator/runner
+            - stdout
+          image: "geerlingguy/mcrouter-operator:0.2.2"
+          imagePullPolicy: "Always"
+          volumeMounts:
+            - mountPath: /tmp/ansible-operator/runner
+              name: runner
+              readOnly: true
+          securityContext: {}
+        - name: operator
+          image: "geerlingguy/mcrouter-operator:0.2.2"
+          imagePullPolicy: "Always"
+          volumeMounts:
+            - mountPath: /tmp/ansible-operator/runner
+              name: runner
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "mcrouter-operator"
+      volumes:
+        - name: runner
+          emptyDir: {}
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: mcrouters.mcrouter.example.com
+spec:
+  group: mcrouter.example.com
+  names:
+    kind: Mcrouter
+    listKind: McrouterList
+    plural: mcrouters
+    singular: mcrouter
+  scope: Namespaced
+  versions:
+  - name: v1alpha3
+    schema:
+      openAPIV3Schema:
+        description: Mcrouter is the Schema for the mcrouters API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec defines the desired state of Mcrouter
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            description: Status defines the observed state of Mcrouter
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

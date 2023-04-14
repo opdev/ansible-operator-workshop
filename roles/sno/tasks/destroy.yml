@@ -1,0 +1,16 @@
+---
+- name: Delete cluster claims
+  kubernetes.core.k8s:
+    state: absent
+    template: cluster-claim.yaml.j2
+  vars:
+    namespace: "{{ workshops_namespace }}"
+    workshop_name: "{{ workshop_name }}"
+  loop: "{{ cluster_names }}"
+  loop_control:
+    loop_var: "name"
+
+- name: Destroy clusterpool config
+  kubernetes.core.k8s:
+    state: absent
+    template: workshop-clusterpool.yaml.j2

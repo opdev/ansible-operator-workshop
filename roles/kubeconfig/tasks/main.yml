@@ -1,0 +1,7 @@
+---
+- name: Fetch install artifact from S3
+  amazon.aws.s3_object:
+    bucket: "{{ bucket_name }}"
+    object: "/{{ sno_name }}/kubeconfig"
+    dest: "/home/ec2-user/.kube/config"
+    mode: get

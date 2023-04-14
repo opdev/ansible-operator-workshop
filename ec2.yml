@@ -1,0 +1,42 @@
+---
+- name: Create EC2 Instances
+  hosts: localhost
+  roles:
+    - role: ec2instances
+      vars:
+        workshop_name: "{{ workshop_name }}"
+        destroy: "{{ teardown_ec2 }}"
+        kube_token: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_API_KEY') }}"
+        kube_host: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_HOST') }}"
+        kube_namespace: "{{ workshops_namespace }}"
+        instance_count: "{{ workshop_instances }}"
+  post_tasks:
+    - name: Print outputs
+      ansible.builtin.debug:
+        var: terraform_outputs.outputs
+      when: not teardown_ec2
+    - name: Register artifacts
+      ansible.builtin.set_stats:
+        data:
+          ec2_instances: "{{ terraform_outputs.outputs }}"
+      when: not teardown_ec2
+
+- name: Wait for instances to become available
+  hosts: ec2instances
+  gather_facts: false
+  tasks:
+    - name: Wait for system to become reachable
+      ansible.builtin.wait_for_connection:
+
+    - name: Gather facts for the first time
+      ansible.builtin.setup:
+
+- name: Complete setup on EC2 instances
+  hosts: ec2instances
+  tasks:
+    - name: Execute user-data
+      ansible.builtin.include_tasks:
+        file: userdata.yml
+        apply:
+          become: true
+      when: not teardown_ec2

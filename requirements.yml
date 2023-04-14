@@ -1,0 +1,6 @@
+---
+collections:
+  - cloud.terraform
+  - kubernetes.core
+  - amazon.aws
+  - community.general

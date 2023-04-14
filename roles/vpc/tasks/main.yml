@@ -1,0 +1,22 @@
+---
+- name: Deploy or destroy the shared VPC
+  cloud.terraform.terraform:
+    state: "{{ destroy | ternary('absent', 'present') }}"
+    project_path: "{{ role_path }}/files/tf/"
+    workspace: "{{ workshop_name }}"
+    purge_workspace: "{{ destroy }}"
+    force_init: true
+    init_reconfigure: true
+  environment:
+    KUBE_TOKEN: "{{ kube_token }}"
+    KUBE_HOST: "{{ kube_host }}"
+    KUBE_NAMESPACE: "{{ kube_namespace }}"
+    KUBE_IN_CLUSTER_CONFIG: "true"
+    TF_VAR_workshop_name: "{{ workshop_name }}"
+  register: terraform_outputs
+
+- name: Terraform outputs
+  ansible.builtin.set_fact:
+    vpc_public_subnet: "{{ terraform_outputs.outputs['sno-lab-vpc-subnet-public'].value[0] }}"
+    vpc_private_subnet: "{{ terraform_outputs.outputs['sno-lab-vpc-subnet-private'].value[0] }}"
+  when: not destroy

@@ -1,0 +1,61 @@
+---
+- name: Ensure installer directories
+  ansible.builtin.file:
+    path: /tmp/installer/{{ sno_item }}
+    state: directory
+    mode: '0755'
+  loop: "{{ cluster_names }}"
+  loop_control:
+    loop_var: "sno_item"
+
+- name: Check for existing install output
+  amazon.aws.s3_object:
+    bucket: "{{ bucket_name }}"
+    region: "{{ region }}"
+    object: "/{{ sno_item }}/metadata.json"
+    dest: /tmp/installer/{{ sno_item }}/metadata.json
+    mode: get
+  ignore_errors: true
+  loop: "{{ cluster_names }}"
+  loop_control:
+    loop_var: "sno_item"
+
+- name: Generate install-config.yaml
+  ansible.builtin.template:
+    src: install-config.yaml.j2
+    dest: /tmp/installer/{{ sno_item }}/install-config.yaml
+    mode: "0600"
+  loop: "{{ cluster_names }}"
+  loop_control:
+    loop_var: "sno_item"
+
+- name: Run installer
+  ansible.builtin.command:
+    cmd: /tmp/installer/openshift-install create cluster --dir=/tmp/installer/{{ sno_item }}
+    creates: /tmp/installer/{{ sno_item }}/metadata.json
+  async: 3600
+  poll: 0
+  loop: "{{ cluster_names }}"
+  loop_control:
+    loop_var: "sno_item"
+  register: sno_results
+
+- name: Upload to S3 bucket
+  amazon.aws.s3_object:
+    bucket: "{{ bucket_name }}"
+    region: "{{ region }}"
+    object: "/{{ item[0] }}/{{ item[1] }}"
+    src: /tmp/installer/{{ item[0] }}/{{ item[1] }}
+    mode: put
+  loop: "{{ cluster_names | product(['metadata.json', 'auth/kubeconfig', 'auth/kubeadmin-password']) | list }}"
+
+- name: Check on SNO async
+  ansible.builtin.async_status:
+    jid: "{{ sno_result_item.ansible_job_id }}"
+  loop: "{{ sno_results.results }}"
+  loop_control:
+    loop_var: "sno_result_item"
+  register: sno_poll_results
+  until: sno_poll_results.finished
+  retries: 60
+  delay: 60

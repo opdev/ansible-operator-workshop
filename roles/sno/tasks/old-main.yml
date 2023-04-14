@@ -1,0 +1,62 @@
+---
+- name: Set bucket name
+  ansible.builtin.set_fact:
+    bucket_name: exe-workshop-{{ workshop_name }}
+
+- name: Set cluster names
+  ansible.builtin.set_fact:
+    clusters: "{{ query('sequence', cluster_range) }}"
+  vars:
+    start: 0
+    cluster_range: "start={{ start }} count={{ instance_count }} format={{ cluster_name }}-%02x"
+
+- name: Ensure installer directory
+  ansible.builtin.file:
+    path: /tmp/installer
+    state: directory
+    mode: '0755'
+
+- name: Create S3 bucket
+  amazon.aws.s3_bucket:
+    name: "{{ bucket_name }}"
+    region: "{{ region }}"
+    versioning: false
+    state: present
+  when: not destroy
+
+- name: SNO Retrieve
+  ansible.builtin.include_tasks:
+    file: retrieve.yml
+  vars:
+    cluster_names: "{{ item }}"
+  loop: "{{ clusters }}"
+
+- name: Fetch the installer
+  ansible.builtin.include_tasks:
+    file: installer-{{ ansible_facts['system'] }}.yml
+  vars:
+    destination: /tmp/installer
+
+- name: SNO Creation
+  ansible.builtin.include_tasks:
+    file: create.yml
+  vars:
+    cluster_names: "{{ item }}"
+  loop: "{{ clusters | batch(10) | list }}"
+  when: not destroy
+
+- name: SNO Destroy
+  ansible.builtin.include_tasks:
+    file: destroy.yml
+  vars:
+    cluster_names: "{{ item }}"
+  loop: "{{ clusters | batch(10) | list }}"
+  when: destroy
+
+- name: Delete S3 bucket
+  amazon.aws.s3_bucket:
+    name: "{{ bucket_name }}"
+    region: "{{ region }}"
+    versioning: false
+    state: absent
+  when: destroy

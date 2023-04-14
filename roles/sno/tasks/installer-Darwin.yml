@@ -1,0 +1,6 @@
+---
+- name: Fetch the installer
+  ansible.builtin.unarchive:
+    src: https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/latest/openshift-install-mac.tar.gz
+    dest: "{{ destination }}"
+    remote_src: true

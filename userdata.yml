@@ -1,0 +1,162 @@
+---
+- name: Update all packages
+  ansible.builtin.yum:
+    name: "*"
+    state: latest
+
+- name: Enable EPEL repos
+  ansible.builtin.command: amazon-linux-extras enable epel -y
+  register: epel_enabled
+
+- name: Install required packages
+  ansible.builtin.yum:
+    name:
+      - gcc
+      - wget
+      - vim
+      - jq
+      - make
+      - tree
+      - openssl-devel
+    state: latest
+
+- name: Install ansible-operator dependencies
+  ansible.builtin.yum:
+    name: epel-release
+    state: latest
+
+- name: Install Python 3 and pip
+  ansible.builtin.yum:
+    name:
+      - python3
+      - python3-pip
+    state: latest
+
+- name: Install pip packages
+  ansible.builtin.pip:
+    name:
+      - pip
+      - setuptools
+      - ipaddress
+      - openshift
+      - ansible
+      - ansible-runner
+      - ansible-runner-http
+    state: latest
+    extra_args: --trusted-host files.pythonhosted.org --trusted-host pypi.org --trusted-host pypi.python.org
+
+- name: Get latest kubectl release
+  ansible.builtin.uri:
+    url: https://dl.k8s.io/release/stable.txt
+    return_content: true
+    follow_redirects: safe
+  register: kubectl_version
+
+- name: Get the SHA256
+  ansible.builtin.uri:
+    url: https://dl.k8s.io/{{ kubectl_version.content }}/bin/linux/amd64/kubectl.sha256
+    return_content: true
+  register: kubectl_sha256
+
+- name: Download kubectl
+  ansible.builtin.get_url:
+    url: https://dl.k8s.io/release/{{ kubectl_version.content }}/bin/linux/amd64/kubectl
+    dest: /usr/local/bin/kubectl
+    checksum: "sha256:{{ kubectl_sha256.content }}"
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Install bash Completion
+  ansible.builtin.yum:
+    name: bash-completion
+    state: latest
+
+- name: Get kubectl bash completions
+  ansible.builtin.command: /usr/local/bin/kubectl completion bash
+  register: kubectl_completions
+
+- name: Install kubectl completions
+  ansible.builtin.blockinfile:
+    path: /etc/bash_completion.d/kubectl
+    block: |
+      {{ kubectl_completions.stdout }}
+    marker: "# {mark} ANSIBLE_MANAGED"
+    create: true
+
+- name: Set the kube editor
+  ansible.builtin.lineinfile:
+    path: /home/ec2-user/.bashrc
+    regexp: '^export KUBE_EDITOR='
+    line: export KUBE_EDITOR=vim
+
+- name: Install Go environment
+  ansible.builtin.yum:
+    name: golang
+    state: latest
+
+- name: Install operator-sdk v1.26.0
+  ansible.builtin.get_url:
+    url: https://github.com/operator-framework/operator-sdk/releases/download/v1.26.0/operator-sdk_linux_amd64
+    dest: /usr/local/bin/operator-sdk
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Install kustomize
+  ansible.builtin.unarchive:
+    src: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v4.1.2/kustomize_v4.1.2_linux_amd64.tar.gz
+    dest: /usr/local/bin
+    remote_src: true
+
+- name: Install openshift-client
+  ansible.builtin.unarchive:
+    src: https://mirror.openshift.com/pub/openshift-v4/amd64/clients/ocp/latest/openshift-client-linux.tar.gz
+    dest: /usr/local/bin
+    remote_src: true
+
+- name: Copy lab exercise assets
+  ansible.builtin.copy:
+    src: "{{ item.path }}/{{ item.filename }}"
+    dest: /tmp/{{ item.filename }}
+    mode: '0644'
+  loop:
+    - { path: operatorframework/go-operator-memcached, filename: memcached_types.go }
+    - { path: operatorframework/go-operator-memcached, filename: memcached_controller.go }
+    - { path: operatorframework/go-operator-podset, filename: podset_types.go }
+    - { path: operatorframework/go-operator-podset, filename: podset_controller.go }
+    - { path: operatorframework/go-operator-podset, filename: app_v1alpha1_podset.yaml }
+    - { path: operatorframework/helm-operator-memcached, filename: charts_v1alpha1_memcached.yaml }
+    - { path: operatorframework/ansible-mcrouter-operator, filename: mcrouter-operator.yaml }
+    - { path: operatorframework/ansible-mcrouter-operator, filename: mcrouter_v1alpha3_mcrouter_cr.yaml }
+    - { path: operatorframework/ansible-operator-overview, filename: cache_v1alpha1_memcached.yaml }
+    - { path: operatorframework/ansible-operator-overview, filename: watches.yaml }
+    - { path: operatorframework/helm-operator, filename: charts_v1alpha1_cockroachdb.yaml }
+
+- name: Create tutorial directory
+  ansible.builtin.file:
+    path: /home/ec2-user/tutorial
+    state: directory
+    mode: '0755'
+
+- name: Setup ansible lab exercise assets
+  ansible.builtin.command:
+    cmd: ansible-galaxy init example-role --offline
+    chdir: /home/ec2-user/tutorial
+    creates: /home/ec2-user/tutorial/example-role/README.md
+
+- name: Create .kube dir
+  ansible.builtin.file:
+    path: /home/ec2-user/.kube
+    state: directory
+    mode: '0755'
+
+- name: Copy tutorial assets
+  ansible.builtin.copy:
+    src: "{{ item.path }}/{{ item.filename }}"
+    dest: /tmp/{{ item.filename }}
+    mode: '0644'
+  loop:
+    - { path: operatorframework/tutorial, filename: myhosts }
+    - { path: operatorframework/tutorial, filename: nginx-deployment.yml }
+    - { path: operatorframework/tutorial, filename: playbook.yml }

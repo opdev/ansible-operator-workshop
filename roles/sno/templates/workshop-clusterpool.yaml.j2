@@ -1,0 +1,63 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: exe-workshop-{{ workshop_name }}-pool-pull-secret
+  namespace: {{ workshops_namespace }}
+{% if not destroy %}
+stringData:
+  .dockerconfigjson: {{ pull_secret }}
+type: kubernetes.io/dockerconfigjson
+{% endif %}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: exe-workshop-{{ workshop_name }}-pool-install-config
+  namespace: {{ workshops_namespace }}
+{% if not destroy %}
+type: Opaque
+data:
+  install-config.yaml: {{ install_config_yaml | b64encode }}
+{% endif %}
+---
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: exe-workshop-{{ workshop_name }}-pool-aws-creds
+  namespace: {{ workshops_namespace }}
+{% if not destroy %}
+stringData:
+  aws_access_key_id: {{ lookup('ansible.builtin.env', 'AWS_ACCESS_KEY_ID') }}
+  aws_secret_access_key: {{ lookup('ansible.builtin.env', 'AWS_SECRET_ACCESS_KEY') }}
+{% endif %}
+---
+apiVersion: hive.openshift.io/v1
+kind: ClusterPool
+metadata:
+  name: exe-workshop-{{ workshop_name }}-pool
+  namespace: {{ workshops_namespace }}
+  labels:
+    cloud: AWS
+    region: us-east-1
+    vendor: OpenShift
+{% if not destroy %}
+spec:
+  size: {{ instance_count }}
+  runningCount: {{ instance_count }}
+  maxSize: {{ instance_count }}
+  baseDomain: coreostrain.me
+  skipMachinePools: true
+  installConfigSecretTemplateRef:
+    name: exe-workshop-{{ workshop_name }}-pool-install-config
+  imageSetRef:
+    name: ocp-4.12.2
+  pullSecretRef:
+    name: exe-workshop-{{ workshop_name }}-pool-pull-secret
+  platform:
+    aws:
+      credentialsSecretRef:
+        name: exe-workshop-{{ workshop_name }}-pool-aws-creds
+      region: us-east-1
+{% endif %}

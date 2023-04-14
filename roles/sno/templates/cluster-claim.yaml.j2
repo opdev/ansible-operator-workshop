@@ -1,0 +1,10 @@
+apiVersion: hive.openshift.io/v1
+kind: ClusterClaim
+metadata:
+  name: {{ name }}
+  namespace: {{ namespace }}
+  labels:
+    workshop.opdev.io: {{ workshop_name }}
+spec:
+  clusterPoolName: exe-workshop-{{ workshop_name }}-pool
+  lifetime: {{ 24 * 7 }}h
