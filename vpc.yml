@@ -4,11 +4,12 @@
   roles:
     - role: vpc
       vars:
-        workshop_name: "{{ workshop_name }}"
-        destroy: "{{ teardown_vpc }}"
-        kube_token: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_API_KEY') }}"
-        kube_host: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_HOST') }}"
-        kube_namespace: "{{ workshops_namespace }}"
+        vpc_workshop_name: "{{ workshop_name }}"
+        vpc_destroy: "{{ teardown_vpc }}"
+        vpc_kube_token: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_API_KEY') }}"
+        vpc_kube_host: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_HOST') }}"
+        vpc_kube_namespace: "{{ workshops_namespace }}"
+        vpc_region: "{{ vpc_workshop_region }}"
   post_tasks:
     - name: Print outputs
       ansible.builtin.debug:

@@ -1,25 +1,25 @@
 ---
 - name: Set bucket name
   ansible.builtin.set_fact:
-    bucket_name: exe-workshop-{{ workshop_name }}
+    bucket_name: exe-workshop-{{ sno_workshop_name }}
 
 - name: Set cluster names
   ansible.builtin.set_fact:
     clusters: "{{ query('sequence', cluster_range) }}"
   vars:
     start: 0
-    cluster_range: "start={{ start }} count={{ instance_count }} format={{ cluster_name }}-%02x"
-  
+    cluster_range: "start={{ start }} count={{ sno_instance_count }} format={{ sno_cluster_name }}-%02x"
+
 - name: SNO Creation
   ansible.builtin.include_tasks:
     file: create.yml
   vars:
     cluster_names: "{{ clusters }}"
-  when: not destroy
+  when: not sno_destroy
 
 - name: SNO Destroy
   ansible.builtin.include_tasks:
     file: destroy.yml
   vars:
     cluster_names: "{{ clusters }}"
-  when: destroy
+  when: sno_destroy

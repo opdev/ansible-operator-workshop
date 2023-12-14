@@ -1,7 +1,7 @@
 ---
 - name: Generate install-config.yaml
   ansible.builtin.set_fact:
-    install_config_yaml: "{{ lookup('ansible.builtin.template', 'workshop-install-config.yaml.j2') }}"
+    sno_install_config_yaml: "{{ lookup('ansible.builtin.template', 'workshop-install-config.yaml.j2') }}"
 
 - name: Generate clusterpool config
   kubernetes.core.k8s:
@@ -12,21 +12,18 @@
   kubernetes.core.k8s:
     state: present
     template: cluster-claim.yaml.j2
-  vars:
-    namespace: "{{ workshops_namespace }}"
-    workshop_name: "{{ workshop_name }}"
   loop: "{{ cluster_names }}"
   loop_control:
     loop_var: "name"
-  
+
 - name: Follow claims until finished
   kubernetes.core.k8s_info:
     kind: ClusterClaim
     api_version: hive.openshift.io/v1
     label_selectors:
-        - "workshop.opdev.io = {{ workshop_name }}"
+      - "workshop.opdev.io = {{ sno_workshop_name }}"
   vars:
-    workshop_name: "{{ workshop_name }}"
+    workshop_name: "{{ sno_workshop_name }}"
     claim_query: "resources[*].status.conditions[?type=='ClusterRunning'].status[]"
   register: claim_results
   until: claim_results|community.general.json_query(claim_query)|unique
