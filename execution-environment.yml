@@ -1,6 +1,11 @@
 ---
-version: 1
+version: 3
+build_arg_defaults:
+  ANSIBLE_GALAXY_CLI_COLLECTION_OPTS: '--force --verbose'
 
+images:
+  base_image:
+    name: ghcr.io/ansible-community/community-ee-minimal:latest
   # build_arg_defaults:
   # EE_BASE_IMAGE: < BASE EE >
 
@@ -10,9 +15,12 @@ dependencies:
   system: bindep.txt
 
 additional_build_steps:
-  prepend: |
+  prepend_builder: |
     RUN pip3 install --upgrade pip setuptools
-    ADD terraform /sbin
-  append:
-    - RUN ls -la /etc
+  append_final: |
+    RUN cd /usr/local/bin && \
+        curl -OL https://releases.hashicorp.com/terraform/1.6.6/terraform_1.6.6_linux_amd64.zip && \
+        unzip terraform_1.6.6_linux_amd64.zip && \
+        rm terraform_1.6.6_linux_amd64.zip && \
+        chmod +x terraform
 
