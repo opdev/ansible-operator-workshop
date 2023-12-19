@@ -4,20 +4,20 @@
   roles:
     - role: sno
       vars:
-        workshop_name: "{{ workshop_name }}"
-        private_subnet: "{{ private_subnet }}"
-        public_subnet: "{{ public_subnet }}"
-        cluster_name: sno-lab-{{ workshop_name }}
-        pull_secret: '{{ openshift_pull_secret }}'
-        ssh_key: "{{ ssh_public_key }}"
-        destroy: "{{ teardown_sno }}"
-        instance_count: "{{ workshop_instances }}"
-        workshops_namespace: "{{ workshops_namespace }}"
-
+        sno_workshop_name: "{{ workshop_name }}"
+        sno_private_subnet: "{{ private_subnet }}"
+        sno_public_subnet: "{{ public_subnet }}"
+        sno_cluster_name: sno-lab-{{ workshop_name }}
+        sno_pull_secret: '{{ openshift_pull_secret }}'
+        sno_ssh_key: "{{ ssh_public_key }}"
+        sno_destroy: "{{ teardown_sno }}"
+        sno_instance_count: "{{ workshop_instances }}"
+        sno_workshops_namespace: "{{ workshops_namespace }}"
+        sno_region: "{{ sno_workshop_region }}"
 - name: Copy kubeconfig to each ec2 instance
   hosts: ec2instances
   roles:
     - role: kubeconfig
       vars:
-        bucket_name: "exe-workshop-{{ workshop_name }}"
+        kubeconfig_bucket_name: "exe-workshop-{{ workshop_name }}"
       when: not teardown

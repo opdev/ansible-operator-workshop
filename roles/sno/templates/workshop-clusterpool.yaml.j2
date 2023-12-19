@@ -2,32 +2,32 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: exe-workshop-{{ workshop_name }}-pool-pull-secret
-  namespace: {{ workshops_namespace }}
-{% if not destroy %}
+  name: exe-workshop-{{ sno_workshop_name }}-pool-pull-secret
+  namespace: {{ sno_workshops_namespace }}
+{% if not sno_destroy %}
 stringData:
-  .dockerconfigjson: {{ pull_secret }}
+  .dockerconfigjson: {{ sno_pull_secret }}
 type: kubernetes.io/dockerconfigjson
 {% endif %}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: exe-workshop-{{ workshop_name }}-pool-install-config
-  namespace: {{ workshops_namespace }}
-{% if not destroy %}
+  name: exe-workshop-{{ sno_workshop_name }}-pool-install-config
+  namespace: {{ sno_workshops_namespace }}
+{% if not sno_destroy %}
 type: Opaque
 data:
-  install-config.yaml: {{ install_config_yaml | b64encode }}
+  install-config.yaml: {{ sno_install_config_yaml | b64encode }}
 {% endif %}
 ---
 apiVersion: v1
 kind: Secret
 type: Opaque
 metadata:
-  name: exe-workshop-{{ workshop_name }}-pool-aws-creds
-  namespace: {{ workshops_namespace }}
-{% if not destroy %}
+  name: exe-workshop-{{ sno_workshop_name }}-pool-aws-creds
+  namespace: {{ sno_workshops_namespace }}
+{% if not sno_destroy %}
 stringData:
   aws_access_key_id: {{ lookup('ansible.builtin.env', 'AWS_ACCESS_KEY_ID') }}
   aws_secret_access_key: {{ lookup('ansible.builtin.env', 'AWS_SECRET_ACCESS_KEY') }}
@@ -36,28 +36,28 @@ stringData:
 apiVersion: hive.openshift.io/v1
 kind: ClusterPool
 metadata:
-  name: exe-workshop-{{ workshop_name }}-pool
-  namespace: {{ workshops_namespace }}
+  name: exe-workshop-{{ sno_workshop_name }}-pool
+  namespace: {{ sno_workshops_namespace }}
   labels:
     cloud: AWS
-    region: us-east-1
+    region: {{ sno_region }}
     vendor: OpenShift
-{% if not destroy %}
+{% if not sno_destroy %}
 spec:
-  size: {{ instance_count }}
-  runningCount: {{ instance_count }}
-  maxSize: {{ instance_count }}
+  size: {{ sno_instance_count }}
+  runningCount: {{ sno_instance_count }}
+  maxSize: {{ sno_instance_count }}
   baseDomain: coreostrain.me
   skipMachinePools: true
   installConfigSecretTemplateRef:
-    name: exe-workshop-{{ workshop_name }}-pool-install-config
+    name: exe-workshop-{{ sno_workshop_name }}-pool-install-config
   imageSetRef:
     name: ocp-4.12.2
   pullSecretRef:
-    name: exe-workshop-{{ workshop_name }}-pool-pull-secret
+    name: exe-workshop-{{ sno_workshop_name }}-pool-pull-secret
   platform:
     aws:
       credentialsSecretRef:
-        name: exe-workshop-{{ workshop_name }}-pool-aws-creds
-      region: us-east-1
+        name: exe-workshop-{{ sno_workshop_name }}-pool-aws-creds
+      region: {{ sno_region }}
 {% endif %}

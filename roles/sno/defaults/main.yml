@@ -1,3 +1,3 @@
 ---
-cluster_name: sno-lab
-region: us-east-1
+sno_cluster_name: sno-lab
+sno_region: us-east-1

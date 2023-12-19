@@ -1,23 +1,26 @@
 ---
 - name: Deploy or destroy the EC2 instances
-  cloud.terraform.terraform:
-    state: "{{ destroy | ternary('absent', 'present') }}"
+  community.general.terraform:
+    state: "{{ ec2instances_destroy | ternary('absent', 'present') }}"
     project_path: "{{ role_path }}/files/tf/"
-    workspace: "{{ workshop_name }}"
-    purge_workspace: "{{ destroy }}"
+    workspace: "{{ ec2instances_workshop_name }}"
+    purge_workspace: "{{ ec2instances_destroy }}"
     force_init: true
     init_reconfigure: true
+    complex_vars: true
+    variables:
+      aws_region: "{{ ec2instances_region }}"
   environment:
-    KUBE_TOKEN: "{{ kube_token }}"
-    KUBE_HOST: "{{ kube_host }}"
-    KUBE_NAMESPACE: "{{ kube_namespace }}"
+    KUBE_TOKEN: "{{ ec2instances_kube_token }}"
+    KUBE_HOST: "{{ ec2instances_kube_host }}"
+    KUBE_NAMESPACE: "{{ ec2instances_kube_namespace }}"
     KUBE_IN_CLUSTER_CONFIG: "true"
-    TF_VAR_workshop_name: "{{ workshop_name }}"
-    TF_VAR_instance_count: "{{ instance_count }}"
+    TF_VAR_workshop_name: "{{ ec2instances_workshop_name }}"
+    TF_VAR_instance_count: "{{ ec2instances_instance_count }}"
     # TF_VAR_key_name: lay-key-{{ workshop_name }}
   register: terraform_outputs
 
 - name: Additional setup upon create
   include_tasks:
     file: create.yml
-  when: not destroy
+  when: not ec2instances_destroy
