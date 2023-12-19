@@ -3,6 +3,7 @@
   ansible.builtin.yum:
     name: "*"
     state: latest
+    lock_timeout: 180
 
 - name: Enable EPEL repos
   ansible.builtin.command: amazon-linux-extras enable epel -y
@@ -19,11 +20,13 @@
       - tree
       - openssl-devel
     state: latest
+    lock_timeout: 180
 
 - name: Install ansible-operator dependencies
   ansible.builtin.yum:
     name: epel-release
     state: latest
+    lock_timeout: 180
 
 - name: Install Python 3 and pip
   ansible.builtin.yum:
@@ -31,6 +34,7 @@
       - python3
       - python3-pip
     state: latest
+    lock_timeout: 180
 
 - name: Install pip packages
   ansible.builtin.pip:
@@ -71,6 +75,7 @@
   ansible.builtin.yum:
     name: bash-completion
     state: latest
+    lock_timeout: 180
 
 - name: Get kubectl bash completions
   ansible.builtin.command: /usr/local/bin/kubectl completion bash
@@ -94,6 +99,7 @@
   ansible.builtin.yum:
     name: golang
     state: latest
+    lock_timeout: 180
 
 - name: Install operator-sdk v1.26.0
   ansible.builtin.get_url:
