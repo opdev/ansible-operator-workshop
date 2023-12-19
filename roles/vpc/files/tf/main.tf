@@ -4,11 +4,15 @@ locals {
 
   region = var.aws_region
 
+  azs = formatlist("${data.aws_region.current.name}%s", ["a", "b"])
+
   tags = {
-    GithubRepo = "operator-workshop"
+    GithubRepo = "ansible-operator-workshop"
     GithubOrg = "opdev"
   }
 }
+
+data "aws_region" "current" {}
 
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
@@ -16,7 +20,7 @@ module "vpc" {
   name = local.name
   cidr = "10.0.0.0/16"
 
-  azs             = ["us-east-1a"]
+  azs             = local.azs
 
   enable_nat_gateway = true
   enable_vpn_gateway = true

@@ -117,21 +117,21 @@
 
 - name: Copy lab exercise assets
   ansible.builtin.copy:
-    src: "{{ item.path }}/{{ item.filename }}"
+    src: "{{ role_path }}/files/{{ item.path }}/{{ item.filename }}"
     dest: /tmp/{{ item.filename }}
     mode: '0644'
   loop:
-    - { path: operatorframework/go-operator-memcached, filename: memcached_types.go }
-    - { path: operatorframework/go-operator-memcached, filename: memcached_controller.go }
-    - { path: operatorframework/go-operator-podset, filename: podset_types.go }
-    - { path: operatorframework/go-operator-podset, filename: podset_controller.go }
-    - { path: operatorframework/go-operator-podset, filename: app_v1alpha1_podset.yaml }
-    - { path: operatorframework/helm-operator-memcached, filename: charts_v1alpha1_memcached.yaml }
-    - { path: operatorframework/ansible-mcrouter-operator, filename: mcrouter-operator.yaml }
-    - { path: operatorframework/ansible-mcrouter-operator, filename: mcrouter_v1alpha3_mcrouter_cr.yaml }
-    - { path: operatorframework/ansible-operator-overview, filename: cache_v1alpha1_memcached.yaml }
-    - { path: operatorframework/ansible-operator-overview, filename: watches.yaml }
-    - { path: operatorframework/helm-operator, filename: charts_v1alpha1_cockroachdb.yaml }
+    - { path: go-operator-memcached, filename: memcached_types.go }
+    - { path: go-operator-memcached, filename: memcached_controller.go }
+    - { path: go-operator-podset, filename: podset_types.go }
+    - { path: go-operator-podset, filename: podset_controller.go }
+    - { path: go-operator-podset, filename: app_v1alpha1_podset.yaml }
+    - { path: helm-operator-memcached, filename: charts_v1alpha1_memcached.yaml }
+    - { path: ansible-mcrouter-operator, filename: mcrouter-operator.yaml }
+    - { path: ansible-mcrouter-operator, filename: mcrouter_v1alpha3_mcrouter_cr.yaml }
+    - { path: ansible-operator-overview, filename: cache_v1alpha1_memcached.yaml }
+    - { path: ansible-operator-overview, filename: watches.yaml }
+    - { path: helm-operator, filename: charts_v1alpha1_cockroachdb.yaml }
 
 - name: Create tutorial directory
   ansible.builtin.file:
@@ -153,10 +153,10 @@
 
 - name: Copy tutorial assets
   ansible.builtin.copy:
-    src: "{{ item.path }}/{{ item.filename }}"
+    src: "{{ role_path }}/files/{{ item.path }}/{{ item.filename }}"
     dest: /tmp/{{ item.filename }}
     mode: '0644'
   loop:
-    - { path: operatorframework/tutorial, filename: myhosts }
-    - { path: operatorframework/tutorial, filename: nginx-deployment.yml }
-    - { path: operatorframework/tutorial, filename: playbook.yml }
+    - { path: tutorial, filename: myhosts }
+    - { path: tutorial, filename: nginx-deployment.yml }
+    - { path: tutorial, filename: playbook.yml }

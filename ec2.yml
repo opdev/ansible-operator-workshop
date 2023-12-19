@@ -4,12 +4,13 @@
   roles:
     - role: ec2instances
       vars:
-        workshop_name: "{{ workshop_name }}"
-        destroy: "{{ teardown_ec2 }}"
-        kube_token: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_API_KEY') }}"
-        kube_host: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_HOST') }}"
-        kube_namespace: "{{ workshops_namespace }}"
-        instance_count: "{{ workshop_instances }}"
+        ec2instances_workshop_name: "{{ workshop_name }}"
+        ec2instances_destroy: "{{ teardown_ec2 }}"
+        ec2instances_kube_token: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_API_KEY') }}"
+        ec2instances_kube_host: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_HOST') }}"
+        ec2instances_kube_namespace: "{{ workshops_namespace }}"
+        ec2instances_instance_count: "{{ workshop_instances }}"
+        ec2instances_region: "{{ ec2_workshop_region }}"
   post_tasks:
     - name: Print outputs
       ansible.builtin.debug:
@@ -24,7 +25,7 @@
 - name: Wait for instances to become available
   hosts: ec2instances
   gather_facts: false
-  tasks:
+  pre_tasks:
     - name: Wait for system to become reachable
       ansible.builtin.wait_for_connection:
 
@@ -33,10 +34,7 @@
 
 - name: Complete setup on EC2 instances
   hosts: ec2instances
-  tasks:
-    - name: Execute user-data
-      ansible.builtin.include_tasks:
-        file: userdata.yml
-        apply:
-          become: true
+  roles:
+    - role: ec2userdata
+      become: true
       when: not teardown_ec2

@@ -33,12 +33,12 @@ networking:
   - 172.30.0.0/16
 platform:
   aws:
-    region: us-east-1
+    region: {{ sno_region }}
     subnets:
     # add subnets here
-    - {{ public_subnet }}
-    - {{ private_subnet }}
+    - {{ sno_public_subnet }}
+    - {{ sno_private_subnet }}
 publish: External
-pullSecret: {{ pull_secret }}
+pullSecret: {{ sno_pull_secret }}
 sshKey: |
-  {{ ssh_key }}
+  {{ sno_ssh_key }}

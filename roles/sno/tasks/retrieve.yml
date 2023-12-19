@@ -1,8 +1,8 @@
 ---
 - name: Download from S3 bucket
   amazon.aws.s3_object:
-    bucket: "{{ bucket_name }}"
-    region: "{{ region }}"
+    bucket: "{{ sno_bucket_name }}"
+    region: "{{ sno_region }}"
     object: "{{ item }}/metadata.json"
     dest: /tmp/installer/{{ item }}/metadata.json
     validate_certs: false
