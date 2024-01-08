@@ -36,5 +36,6 @@ module "ec2_instance" {
     Terraform   = "true"
     Environment = "prod"
     Name  = "Instance-${local.suffix}-${format("%02d", count.index)}"
+    Workshop = local.suffix
   }
 }
