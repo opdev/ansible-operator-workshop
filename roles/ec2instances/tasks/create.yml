@@ -9,6 +9,18 @@
     dest: "/tmp/aws.pem"
     mode: "0600"
 
+- name: Also write keyfile to k8s
+  kubernetes.core.k8s:
+    namespace: "{{ ec2instances_kube_namespace }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "ec2-key-{{ ec2instances_workshop_name }}"
+      type: Opaque
+      data:
+        aws.pem: "{{ terraform_outputs.outputs.private_key_pem.value | ansible.builtin.b64encode }}"
+
 - name: Add hosts to inventory
   ansible.builtin.add_host:
     name: "{{ item.public_dns }}"

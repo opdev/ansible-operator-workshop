@@ -26,6 +26,6 @@
     workshop_name: "{{ sno_workshop_name }}"
     claim_query: "resources[*].status.conditions[?type=='ClusterRunning'].status[]"
   register: claim_results
-  until: claim_results|community.general.json_query(claim_query)|unique
+  until: claim_results | community.general.json_query(claim_query) | unique | reject("equalto", "True") | length == 0
   retries: 60
   delay: 60
