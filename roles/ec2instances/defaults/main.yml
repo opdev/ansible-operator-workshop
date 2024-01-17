@@ -3,3 +3,8 @@ ec2instances_destroy: false
 ec2instances_workshop_name: default
 ec2instances_kube_namespace: workshops
 ec2instances_region: us-east-1
+ec2instances_terraform_force_init: true
+ec2instances_terraform_init_reconfigure: true
+
+# Since this gets passed to terraform, it must be a string. Otherwise, terraform complains.
+ec2instances_kube_in_cluster_config: "true"

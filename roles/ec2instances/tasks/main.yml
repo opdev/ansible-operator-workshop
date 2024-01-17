@@ -1,24 +1,25 @@
 ---
 - name: Deploy or destroy the EC2 instances
-  community.general.terraform:
+  cloud.terraform.terraform:
     state: "{{ ec2instances_destroy | ternary('absent', 'present') }}"
     project_path: "{{ role_path }}/files/tf/"
     workspace: "{{ ec2instances_workshop_name }}"
     purge_workspace: "{{ ec2instances_destroy }}"
-    force_init: true
-    init_reconfigure: true
+    force_init: "{{ ec2instances_terraform_force_init }}"
+    init_reconfigure: "{{ ec2instances_terraform_init_reconfigure }}"
     complex_vars: true
     variables:
       aws_region: "{{ ec2instances_region }}"
-  environment:
-    KUBE_TOKEN: "{{ ec2instances_kube_token }}"
-    KUBE_HOST: "{{ ec2instances_kube_host }}"
-    KUBE_NAMESPACE: "{{ ec2instances_kube_namespace }}"
-    KUBE_IN_CLUSTER_CONFIG: "true"
-    TF_VAR_workshop_name: "{{ ec2instances_workshop_name }}"
-    TF_VAR_instance_count: "{{ ec2instances_instance_count }}"
-    TF_VAR_key_name: lab-key-{{ workshop_name }}
-    TF_VAR_instance_type: "t2.micro"
+      instance_count: "{{ ec2instances_instance_count }}"
+      key_name: "lab-key-{{ ec2instances_workshop_name }}"
+      instance_type: "t2.micro"
+    backend_config:
+      token: "{{ lookup('ansible.builtin.env', 'KUBE_TOKEN', default=omit) }}"
+      host: "{{ lookup('ansible.builtin.env', 'KUBE_HOST', default=omit) }}"
+      in_cluster_config: "{{ lookup('ansible.builtin.env', 'KUBE_IN_CLUSTER_CONFIG', default=omit) }}"
+      config_path: "{{ lookup('ansible.builtin.env', 'KUBE_CONFIG_PATH', default=omit) }}"
+      username: "{{ lookup('ansible.builtin.env', 'KUBE_USERNAME', default=omit) }}"
+      namespace: "{{ ec2instances_kube_namespace }}"
   register: terraform_outputs
 
 - name: Additional setup upon create
