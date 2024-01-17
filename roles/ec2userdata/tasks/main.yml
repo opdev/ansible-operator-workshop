@@ -125,6 +125,8 @@
   ansible.builtin.copy:
     src: "{{ role_path }}/files/{{ item.path }}/{{ item.filename }}"
     dest: /tmp/{{ item.filename }}
+    owner: ec2-user
+    group: ec2-user
     mode: '0644'
   loop:
     - { path: go-operator-memcached, filename: memcached_types.go }
@@ -143,6 +145,8 @@
   ansible.builtin.file:
     path: /home/ec2-user/tutorial
     state: directory
+    owner: ec2-user
+    group: ec2-user
     mode: '0755'
 
 - name: Setup ansible lab exercise assets
@@ -150,11 +154,15 @@
     cmd: ansible-galaxy init example-role --offline
     chdir: /home/ec2-user/tutorial
     creates: /home/ec2-user/tutorial/example-role/README.md
+  become: true
+  become_user: ec2-user
 
 - name: Create .kube dir
   ansible.builtin.file:
     path: /home/ec2-user/.kube
     state: directory
+    owner: ec2-user
+    group: ec2-user
     mode: '0755'
 
 - name: Copy tutorial assets
@@ -162,6 +170,8 @@
     src: "{{ role_path }}/files/{{ item.path }}/{{ item.filename }}"
     dest: /tmp/{{ item.filename }}
     mode: '0644'
+    owner: ec2-user
+    group: ec2-user
   loop:
     - { path: tutorial, filename: myhosts }
     - { path: tutorial, filename: nginx-deployment.yml }

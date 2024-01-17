@@ -1,7 +1,14 @@
 ---
 - name: Fetch install artifact from S3
   amazon.aws.s3_object:
-    bucket: "{{ bucket_name }}"
-    object: "/{{ sno_name }}/kubeconfig"
+    bucket: "{{ kubeconfig_bucket_name }}"
+    object: "/{{ kubeconfig_sno_name }}/kubeconfig"
     dest: "/home/ec2-user/.kube/config"
     mode: get
+  when: kubeconfig_source == "s3"
+
+- name: Get kubeconfig from k8s secret
+  ansible.builtin.include_tasks:
+    file: k8s.yml
+  when: kubeconfig_source == "k8s"
+

@@ -1,0 +1,67 @@
+---
+- name: Get ClusterClaim
+  kubernetes.core.k8s_info:
+    kind: ClusterClaim
+    api_version: hive.openshift.io/v1
+    name: "{{ kubeconfig_sno_name }}"
+    namespace: "workshops"
+  register: claim_results
+  delegate_to: localhost
+
+- name: Get ClusterDeployment
+  kubernetes.core.k8s_info:
+    kind: ClusterDeployment
+    api_version: hive.openshift.io/v1
+    name: "{{ claim_results.resources[0].spec.namespace }}"
+    namespace: "{{ claim_results.resources[0].spec.namespace }}"
+  register: deployment_results
+  delegate_to: localhost
+
+- name: Fetch install artifact from k8s
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: "{{ deployment_results.resources[0].spec.clusterMetadata.adminKubeconfigSecretRef.name }}"
+    namespace: "{{ claim_results.resources[0].spec.namespace }}"
+  register: kubeconfig_results
+  delegate_to: localhost
+
+- name: Decode the data
+  ansible.builtin.set_fact:
+    kubeconfig: "{{ kubeconfig_results.resources[0].data.kubeconfig | ansible.builtin.b64decode }}"
+
+- name: Ensure .kube dir 
+  ansible.builtin.file:
+    dest: /home/ec2-user/.kube
+    mode: "0700"
+    owner: "ec2-user"
+    group: "ec2-user"
+
+- name: Write it out
+  ansible.builtin.copy:
+    content: "{{ kubeconfig }}"
+    dest: /home/ec2-user/.kube/config
+    mode: "0600"
+    owner: "ec2-user"
+    group: "ec2-user"
+
+- name: Fetch the kubeadmin password
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: "{{ deployment_results.resources[0].spec.clusterMetadata.adminPasswordSecretRef.name }}"
+    namespace: "{{ claim_results.resources[0].spec.namespace }}"
+  register: kubeadmin_results
+  delegate_to: localhost
+
+- name: Decode the data
+  ansible.builtin.set_fact:
+    kubeadmin_password: "{{ kubeadmin_results.resources[0].data.password | ansible.builtin.b64decode }}"
+
+- name: Write it out
+  ansible.builtin.copy:
+    content: "{{ kubeadmin_password }}"
+    dest: /home/ec2-user/kubeadmin-password
+    mode: "0600"
+    owner: "ec2-user"
+    group: "ec2-user"

@@ -14,10 +14,20 @@
         sno_instance_count: "{{ workshop_instances }}"
         sno_workshops_namespace: "{{ workshops_namespace }}"
         sno_region: "{{ sno_workshop_region }}"
+  post_tasks:
+    - name: Write keyfile to disk
+      ansible.builtin.copy:
+        content: "{{ private_key_pem }}"
+        dest: "/tmp/aws.pem"
+        mode: "0600"
+      when: not teardown
+
 - name: Copy kubeconfig to each ec2 instance
-  hosts: ec2instances
+  hosts: ec2instances_{{ workshop_name }}
   roles:
     - role: kubeconfig
       vars:
-        kubeconfig_bucket_name: "exe-workshop-{{ workshop_name }}"
+        kubeconfig_source: "k8s"
+        kubeconfig_sno_name: "{{ tags['Sno'] }}"
+        kubeconfig_workshop_name: "{{ workshop_name }}"
       when: not teardown
