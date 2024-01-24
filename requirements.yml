@@ -2,4 +2,5 @@
 collections:
   - kubernetes.core
   - amazon.aws
+  - cloud.terraform
   - community.general
