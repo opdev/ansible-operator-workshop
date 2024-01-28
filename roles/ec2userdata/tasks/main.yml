@@ -19,6 +19,7 @@
       - make
       - tree
       - openssl-devel
+      - podman
     state: latest
     lock_timeout: 180
 
