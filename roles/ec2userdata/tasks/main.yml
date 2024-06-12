@@ -4,6 +4,7 @@
     name: "*"
     state: latest
     lock_timeout: 180
+    use_backend: "dnf4"
 
 - name: Enable EPEL repos
   ansible.builtin.command: amazon-linux-extras enable epel -y
@@ -22,12 +23,14 @@
       - podman
     state: latest
     lock_timeout: 180
+    use_backend: "dnf4"
 
 - name: Install ansible-operator dependencies
   ansible.builtin.dnf:
     name: epel-release
     state: latest
     lock_timeout: 180
+    use_backend: "dnf4"
 
 - name: Install Python 3 and pip
   ansible.builtin.dnf:
@@ -36,6 +39,7 @@
       - python3-pip
     state: latest
     lock_timeout: 180
+    use_backend: "dnf4"
 
 - name: Install pip packages
   ansible.builtin.pip:
@@ -77,6 +81,7 @@
     name: bash-completion
     state: latest
     lock_timeout: 180
+    use_backend: "dnf4"
 
 - name: Get kubectl bash completions
   ansible.builtin.command: /usr/local/bin/kubectl completion bash
@@ -101,6 +106,7 @@
     name: golang
     state: latest
     lock_timeout: 180
+    use_backend: "dnf4"
 
 - name: Install operator-sdk v1.26.0
   ansible.builtin.get_url:
