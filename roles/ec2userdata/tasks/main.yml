@@ -7,8 +7,13 @@
     use_backend: "dnf4"
 
 - name: Enable EPEL repos
-  ansible.builtin.command: amazon-linux-extras enable epel -y
-  register: epel_enabled
+  ansible.builtin.dnf:
+    name: 
+     - epel-release
+     - epel-next-release
+    state: latest
+    lock_timeout: 180
+    use_backend: "dnf4"
 
 - name: Install required packages
   ansible.builtin.dnf:

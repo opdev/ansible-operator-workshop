@@ -8,7 +8,7 @@ variable "ami" {
   type        = map
   description = "AMI to use"
   default     = {
-    "us-east-1" = "ami-08a0d1e16fc3f61ea"
+    "us-east-1" = "ami-0df2a11dd1fe1f8e3"
   }
 }
 
