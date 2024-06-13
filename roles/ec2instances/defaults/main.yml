@@ -3,3 +3,4 @@ ec2instances_destroy: false
 ec2instances_workshop_name: default
 ec2instances_kube_namespace: workshops
 ec2instances_region: us-east-1
+ec2instances_instance_type: t2.medium

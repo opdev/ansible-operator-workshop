@@ -12,7 +12,7 @@ controlPlane:
     aws:
       rootVolume:
         size: 120
-      type: m5.xlarge
+      type: m6i.2xlarge 
 compute:
 - hyperthreading: Enabled
   architecture: amd64
@@ -22,7 +22,7 @@ compute:
     aws:
       rootVolume:
         size: 120
-      type: m5.xlarge
+      type: m6i.2xlarge 
 networking:
   networkType: OVNKubernetes
   clusterNetwork:
