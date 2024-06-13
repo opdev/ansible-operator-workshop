@@ -18,7 +18,7 @@
     TF_VAR_workshop_name: "{{ ec2instances_workshop_name }}"
     TF_VAR_instance_count: "{{ ec2instances_instance_count }}"
     TF_VAR_key_name: lab-key-{{ workshop_name }}
-    TF_VAR_instance_type: "t2.micro"
+    TF_VAR_instance_type: "{{ ec2instances_instance_type }}"
   register: terraform_outputs
 
 - name: Additional setup upon create
